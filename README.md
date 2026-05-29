@@ -24,3 +24,8 @@ There are two other scripts within the folder to make note of:
 
 #### stop-containers.sh
 `stop-containers` stops ALL running containers on the host.  This script assumes that the VM is strictly for testing out Octopus, use with caution.
+
+## Octopus Server license
+The Octopus Server license is intentionally blank within the `.env` file for Docker Compose.  Please be aware that everything will configure and start correctly, but Octopus will not be able to add items until a valid license has been added.  This can be done via:
+- base64 encoding your license key and adding the value to the `octopusdeploy.env` file
+- Pasting the license using the Octopus Deploy UI
