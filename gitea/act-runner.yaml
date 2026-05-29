@@ -1,0 +1,18 @@
+services:
+  runner:
+    container_name: gitea-runner
+    image: gitea/act_runner:latest
+    environment:
+      - CONFIG_FILE=${CONFIG_FILE}
+      - GITEA_INSTANCE_URL=${GITEA_INSTANCE_URL}
+      - GITEA_RUNNER_REGISTRATION_TOKEN=${GITEA_RUNNER_REGISTRATION_TOKEN}
+    volumes:
+      - ./config.yaml:/config.yaml
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - gitea_network
+
+networks:
+  gitea_network:
+    external: true
+    name: octopusdeploy_default
