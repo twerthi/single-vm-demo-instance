@@ -20,7 +20,7 @@ There are two other scripts within the folder to make note of:
 - stop-containers.sh
 
 #### reset-server.sh
-`reset-server.sh` does exactly what it sounds like, deletes all data and containers to completely reset everything.  Use this if you want to start all the way over or just clean up.
+`reset-server.sh` does exactly what it sounds like, deletes all data and containers to completely reset everything.  Use this if you want to start over or just clean up.
 
 #### stop-containers.sh
 `stop-containers` stops ALL running containers on the host.  This script assumes that the VM is strictly for testing out Octopus, use with caution.
@@ -31,7 +31,7 @@ The Octopus Server license is intentionally blank within the `.env` file for Doc
 - Pasting the license using the Octopus Deploy UI
 
 ## Usage
-All of the components of this environment run within Docker, they are all on the same Docker network so their hostnames can be resolveable.  To simplify things, all servers communicate via HTTP
+All of the components of this environment run within Docker, they are all on the same Docker network so their hostnames can be resolveable.  To simplify things, all servers communicate via HTTP.
 
 ### Servers
 - Octopus Deploy server
@@ -45,6 +45,8 @@ All of the components of this environment run within Docker, they are all on the
 - Argo CD
   - Hostname: Installed on KInD server
   - URL: http://localhost:8090
+
+**Note**:  All ports are configured with `0.0.0.0`, meaning you can access these URLs from another machine - `http://<machine name>:<port>`
 
 ##### Inter server communication
 When the servers need to talk to eachother, such as the repo url for Argo CD to watch, they need to refer to eachother by hostname and port.  For example, in the example given, the `repoURL` section of the Argo CD Application Manifest would look similar to this:
