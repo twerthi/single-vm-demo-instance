@@ -17,3 +17,10 @@ containerdConfigPatches:
         endpoint = ["http://gitea:3000"]
       [plugins."io.containerd.grpc.v1.cri".registry.configs."gitea:3000".tls]
         insecure_skip_verify = true
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+        [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry:5000"]
+          endpoint = ["http://registry:5000"]
+      [plugins."io.containerd.grpc.v1.cri".registry.configs]
+        [plugins."io.containerd.grpc.v1.cri".registry.configs."registry:5000".tls]
+          insecure_skip_verify = true        
