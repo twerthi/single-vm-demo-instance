@@ -133,6 +133,10 @@ container:
   # directory is also mounted into the runner container and listed in valid_volumes.
   bind_workdir: false
   pull_policy: "if-not-present"
+  insecure_registries:
+    - "registry:5000"
+    - "gitea:3000"
+    - "localhost:5000"
 
 host:
   # The parent directory of a job's working directory.
