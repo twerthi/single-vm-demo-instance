@@ -46,4 +46,30 @@ done
 
 echo ""
 echo "Pre-pulling ubuntu image for Gitea builds"
-docker pull ubuntu:22.04
+docker pull docker.gitea.com/runner-images:ubuntu-latest
+docker pull moby/buildkit:buildx-stable-1
+
+echo ""
+echo "Updating giteal runner configuration to use local registry..."
+CONFIG_FILE="${1:-$PWD/gitea/config.yaml}"
+LOCAL_IMAGE="${2:-runner-images:ubuntu-latest}"
+LABEL="ubuntu-latest"
+
+if [[ ! -f "$CONFIG_FILE" ]]; then
+  echo "Error: config file not found: $CONFIG_FILE"
+  exit 1
+fi
+
+# Back up the original
+cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
+echo "Backup saved to ${CONFIG_FILE}.bak"
+
+# Replace the label line
+sed -i "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${LOCAL_IMAGE}\"|g" "$CONFIG_FILE"
+
+# Verify the change
+echo "Updated label:"
+grep "$LABEL" "$CONFIG_FILE"
+
+echo "Restarting Gitea runner to apply changes..."
+docker compose restart gitea-runner
