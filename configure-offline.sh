@@ -51,10 +51,10 @@ docker pull moby/buildkit:buildx-stable-1
 
 echo ""
 echo "Tagging and pushing ubuntu image to local registry for Gitea builds"
-docker tag docker.gitea.com/runner-images:ubuntu-latest registry:5000/runner-images:ubuntu-latest
-docker push registry:5000/runner-images:ubuntu-latest
-docker tag moby/buildkit:buildx-stable-1 registry:5000/moby/buildkit:buildx-stable-1
-docker push registry:5000/moby/buildkit:buildx-stable-1
+docker tag docker.gitea.com/runner-images:ubuntu-latest localhost:5000/runner-images:ubuntu-latest
+docker push localhost:5000/runner-images:ubuntu-latest
+docker tag moby/buildkit:buildx-stable-1 localhost:5000/moby/buildkit:buildx-stable-1
+docker push localhost:5000/moby/buildkit:buildx-stable-1
 
 echo ""
 echo "Updating giteal runner configuration to use local registry..."
