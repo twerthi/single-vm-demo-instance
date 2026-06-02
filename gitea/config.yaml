@@ -117,7 +117,7 @@ container:
   # If it's empty, act_runner will find an available docker host automatically.
   # If it's "-", act_runner will find an available docker host automatically, but the docker host won't be mounted to the job containers and service containers.
   # If it's not empty or "-", the specified docker host will be used. An error will be returned if it doesn't work.
-  #docker_host: ""
+  docker_host: ""
   # Pull docker image(s) even if already present
   force_pull: true
   # Rebuild docker image(s) even if already present
@@ -137,7 +137,9 @@ container:
     - "registry:5000"
     - "gitea:3000"
     - "localhost:5000"
-  docker_host: "unix:///var/run/docker.sock"
+  
+  # Specifies to use the host docker for name resolution
+  #docker_host: "unix:///var/run/docker.sock"
 
 host:
   # The parent directory of a job's working directory.

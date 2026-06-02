@@ -57,7 +57,7 @@ docker tag moby/buildkit:buildx-stable-1 localhost:5000/moby/buildkit:buildx-sta
 docker push localhost:5000/moby/buildkit:buildx-stable-1
 
 echo ""
-echo "Updating giteal runner configuration to use local registry..."
+echo "Updating gitea runner configuration to use local registry..."
 CONFIG_FILE="${1:-$PWD/gitea/config.yaml}"
 REGISTRY_IMAGE="${2:-registry:5000/runner-images:ubuntu-latest}"
 LABEL="ubuntu-latest"
