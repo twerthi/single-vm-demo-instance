@@ -72,4 +72,4 @@ echo "Updated label:"
 grep "$LABEL" "$CONFIG_FILE"
 
 echo "Restarting Gitea runner to apply changes..."
-docker compose restart gitea-runner
+docker restart gitea-runner
