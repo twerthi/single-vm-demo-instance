@@ -59,7 +59,7 @@ docker push localhost:5000/moby/buildkit:buildx-stable-1
 echo ""
 echo "Updating gitea runner configuration to use local registry..."
 CONFIG_FILE="${1:-$PWD/gitea/config.yaml}"
-#REGISTRY_IMAGE="${2:-registry:5000/runner-images:ubuntu-latest}"
+# Set to localhost because the containers run on the host context and the registry is exposed on the host's network. The runner will be configured to pull from localhost:5000 which is the local registry.
 REGISTRY_IMAGE="${2:-localhost:5000/runner-images:ubuntu-latest}"
 LABEL="ubuntu-latest"
 
@@ -79,31 +79,3 @@ sed -i "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${REGISTRY_IMAGE}\"|g
 echo "Updated label:"
 grep "$LABEL" "$CONFIG_FILE"
 
-# set -euo pipefail
- 
-# DAEMON_JSON="/etc/docker/daemon.json"
-# REGISTRY="${1:?Usage: sudo $0 <registry>}"
- 
-# [[ $EUID -eq 0 ]]          || { echo "ERROR: Run as root."; exit 1; }
-# command -v jq &>/dev/null  || { echo "ERROR: jq is required."; exit 1; }
- 
-# # Create file if missing, validate if it exists
-# [[ -f "$DAEMON_JSON" ]] || echo "{}" > "$DAEMON_JSON"
-# jq empty "$DAEMON_JSON" 2>/dev/null || { echo "ERROR: Invalid JSON in $DAEMON_JSON"; exit 1; }
- 
-# # Check if already present
-# if jq -e --arg r "$REGISTRY" '.["insecure-registries"] // [] | contains([$r])' "$DAEMON_JSON" &>/dev/null; then
-#   echo "'$REGISTRY' already in insecure-registries. No changes made."
-#   exit 0
-# fi
- 
-# # Back up and update
-# cp "$DAEMON_JSON" "${DAEMON_JSON}.bak"
-# jq --arg r "$REGISTRY" '.["insecure-registries"] = ((.["insecure-registries"] // []) + [$r])' \
-#   "$DAEMON_JSON" > /tmp/daemon.json.tmp && mv /tmp/daemon.json.tmp "$DAEMON_JSON"
- 
-# echo "Added '$REGISTRY' to insecure-registries. Restart Docker to apply: sudo systemctl restart docker"
- 
-
-# echo "Restarting Gitea runner to apply changes..."
-# docker restart gitea-runner
