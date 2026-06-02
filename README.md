@@ -10,6 +10,9 @@ This project spins up an environment that can be used for kicking the tires on O
 - Kubernetes cluster
   - Argo CD
 
+### MacOs Requirements:
+ - [Brew](https://brew.sh/)
+ 
 ## Starting the environment
 
 This project was meant to be easy for anyone to get up and running quickly.  Once the repo has been cloned, simply run `configure-server.sh` to get up and running.  **Note** The script assumes you have Docker installed, other than that, it's plug-n-play.
