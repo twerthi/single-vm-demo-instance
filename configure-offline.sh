@@ -50,9 +50,16 @@ docker pull docker.gitea.com/runner-images:ubuntu-latest
 docker pull moby/buildkit:buildx-stable-1
 
 echo ""
+echo "Tagging and pushing ubuntu image to local registry for Gitea builds"
+docker tag docker.gitea.com/runner-images:ubuntu-latest registry:5000/runner-images:ubuntu-latest
+docker push registry:5000/runner-images:ubuntu-latest
+docker tag moby/buildkit:buildx-stable-1 registry:5000/moby/buildkit:buildx-stable-1
+docker push registry:5000/moby/buildkit:buildx-stable-1
+
+echo ""
 echo "Updating giteal runner configuration to use local registry..."
 CONFIG_FILE="${1:-$PWD/gitea/config.yaml}"
-LOCAL_IMAGE="${2:-runner-images:ubuntu-latest}"
+REGISTRY_IMAGE="${2:-registry:5000/runner-images:ubuntu-latest}"
 LABEL="ubuntu-latest"
 
 if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -65,7 +72,7 @@ cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
 echo "Backup saved to ${CONFIG_FILE}.bak"
 
 # Replace the label line
-sed -i "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${LOCAL_IMAGE}\"|g" "$CONFIG_FILE"
+sed -i "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${REGISTRY_IMAGE}\"|g" "$CONFIG_FILE"
 
 # Verify the change
 echo "Updated label:"
