@@ -9,6 +9,7 @@ services:
     volumes:
       - ./config.yaml:/config.yaml
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./act-runner-daemon.json:/etc/docker/daemon.json
     networks:
       - gitea_network
 
