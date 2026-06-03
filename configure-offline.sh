@@ -87,6 +87,13 @@ docker tag octopusdeploy/worker-tools:6.5.0-ubuntu.22.04 localhost:5000/octopusd
 docker push localhost:5000/octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
 
 echo ""
+echo "Pulling dependent images for sample application build..."
+docker pull mcr.microsoft.com/dotnet/sdk:9.0
+echo "Tagging and pushing dependent images to local registry for offline installation..."
+docker tag mcr.microsoft.com/dotnet/sdk:9.0 localhost:5000/mcr.microsoft.com/dotnet/sdk:9.0
+docker push localhost:5000/mcr.microsoft.com/dotnet/sdk:9.0 
+
+echo ""
 echo "Your environment has been configured to work without Internet access.  Next steps:
 - If you did not provide the base64 encoded license value for Octopus Deploy, you will need to paste the XML license file content using the UI.  The Octopus server will start without it, but will not allow you to add any targets or projects until a license has been applied
 - Add the Kubernetes Agent - Agent installation uses a Helm chart, which will need to be run before you disconnect from the Internet.  If you're new to Octopus, there is a wizard that will guide you throught this.
