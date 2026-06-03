@@ -1,0 +1,3 @@
+{
+  "insecure-registries": ["registry:5000", "gitea:3000", "localhost:5000"]
+}
