@@ -84,7 +84,7 @@ echo "Pulling Octopus Deploy Worker Tools image for offline installation..."
 docker pull octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
 echo "Tagging and pushing Octopus Deploy Worker Tools image to local registry for offline installation..."
 docker tag octopusdeploy/worker-tools:6.5.0-ubuntu.22.04 localhost:5000/octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
-docker push --platform linux/amd64 localhost:5000/octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
+docker push localhost:5000/octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
 
 echo ""
 echo "Pulling dependent images for sample application build..."
