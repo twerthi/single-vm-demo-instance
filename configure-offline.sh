@@ -79,3 +79,15 @@ sed -i "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${REGISTRY_IMAGE}\"|g
 echo "Updated label:"
 grep "$LABEL" "$CONFIG_FILE"
 
+echo ""
+echo "Pulling Octopus Deploy Worker Tools image for offline installation..."
+docker pull octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
+echo "Tagging and pushing Octopus Deploy Worker Tools image to local registry for offline installation..."
+docker tag octopusdeploy/worker-tools:6.5.0-ubuntu.22.04 localhost:5000/octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
+docker push localhost:5000/octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
+
+echo ""
+echo "Your environment has been configured to work without Internet access.  Next steps:
+- If you did not provide the base64 encoded license value for Octopus Deploy, you will need to paste the XML license file content using the UI.  The Octopus server will start without it, but will not allow you to add any targets or projects until a license has been applied
+- Add the Kubernetes Agent - Agent installation uses a Helm chart, which will need to be run before you disconnect from the Internet.  If you're new to Octopus, there is a wizard that will guide you throught this.
+- Add the Octopus Deploy Argo CD Gateway - Gateway installation uses a Helm chart, which will need to be run before you disconnect from the Internet.  If you're new to Octopus, there is a wizard that will guide you throught this."
