@@ -81,3 +81,19 @@ When the servers need to talk to eachother, such as the repo url for Argo CD to 
 ```
 
 Similarly, when you install the Kubernetes Agent or the Argo CD Gateway for Octopus Deploy, the wizard will use the location from you address bar; http://localhost:8080.  This will need to be changed to `http://octopus:8080`.  Please note that all inter server communication takes place over `HTTP`, not `HTTPS`.  Any references, such as the Octopus wizards, will use https by default and must be changed to http instead.
+
+#### Authentication
+All servers are configured to use a default username and password, if you need to change this, it will need to be updated within the script files.
+- Username: admin
+- Password: Admin123!
+
+##### Argo CD
+Argo CD is the only exception to the default username and password.  The initial admin password can be retrieved
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+```
+
+To support Octopus connectivity, the configuration process creates a new user in Argo CD:
+- Username: octopus
+- Password: Admin123!
