@@ -93,6 +93,11 @@ echo "Tagging and pushing dependent images to local registry for offline install
 docker tag mcr.microsoft.com/dotnet/sdk:9.0 localhost:5000/mcr.microsoft.com/dotnet/sdk:9.0
 docker push localhost:5000/mcr.microsoft.com/dotnet/sdk:9.0 
 
+docker pull mcr.microsoft.com/dotnet/aspnet:9.0
+echo "Tagging and pushing dependent images to local registry for offline installation..."
+docker tag mcr.microsoft.com/dotnet/aspnet:9.0 localhost:5000/mcr.microsoft.com/dotnet/aspnet:9.0
+docker push localhost:5000/mcr.microsoft.com/dotnet/aspnet:9.0
+
 echo ""
 echo "Your environment has been configured to work without Internet access.  Next steps:
 - If you did not provide the base64 encoded license value for Octopus Deploy, you will need to paste the XML license file content using the UI.  The Octopus server will start without it, but will not allow you to add any targets or projects until a license has been applied
