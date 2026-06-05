@@ -131,7 +131,7 @@ echo ""
 echo "Uploading nuget packages to local nuget server for offline installation..."
 for pkg in "$OUTPUT_DIR"/*.nupkg; do
   echo "Uploading $(basename "$pkg")..."
-  curl -sL -X POST "http://localhost:6000/nuget" \
+  curl -sL -X POST "http://localhost:8000/nuget" \
     -H "X-NuGet-ApiKey: Admin123!" \
     -F "package=@$pkg"
 done
