@@ -99,6 +99,44 @@ docker tag mcr.microsoft.com/dotnet/aspnet:9.0 localhost:5000/mcr.microsoft.com/
 docker push localhost:5000/mcr.microsoft.com/dotnet/aspnet:9.0
 
 echo ""
+echo "Starting a local nuget server container..."
+docker run -d --name nuget-server -p 6000:8080 -e ApiKey="Admin123!" -v ./bagetter-data:/data  --network octopusdeploy_default bagetter/bagetter:latest
+
+echo ""
+echo "Cloning sample application repository for offline installation..."
+git clone http://localhost:3000/admin/instruqt-sample-applications.git
+
+echo ""
+echo "Parsing nuget package dependencies..."
+find instruqt-sample-applications -name "*.csproj" -exec sh -c 'grep "<PackageReference" "$1" | sed -E "s/.*Include=\"([^\"]*)\".*Version=\"([^\"]*)\".*/\1|\2/p"' sh {} \; | sort -u > nuget-dependencies.txt
+
+echo ""
+echo "Downloading nuget packages for offline installation..."
+#!/usr/bin/env bash
+ 
+OUTPUT_DIR="./nuget-packages"
+mkdir -p "$OUTPUT_DIR"
+ 
+while IFS='|' read -r pkg_id version; do
+  pkg_lower=$(echo "$pkg_id" | tr '[:upper:]' '[:lower:]')
+  ver_lower=$(echo "$version" | tr '[:upper:]' '[:lower:]')
+  echo "Downloading $pkg_id $version..."
+  curl -sL -o "$OUTPUT_DIR/${pkg_lower}.${ver_lower}.nupkg" \
+    "https://api.nuget.org/v3-flatcontainer/${pkg_lower}/${ver_lower}/${pkg_lower}.${ver_lower}.nupkg"
+done < nuget-dependencies.txt
+ 
+echo "Done."
+
+echo "" 
+echo "Uploading nuget packages to local nuget server for offline installation..."
+for pkg in "$OUTPUT_DIR"/*.nupkg; do
+  echo "Uploading $(basename "$pkg")..."
+  curl -sL -X POST "http://localhost:6000/nuget" \
+    -H "X-NuGet-ApiKey: Admin123!" \
+    -F "package=@$pkg"
+done
+
+echo ""
 echo "Your environment has been configured to work without Internet access.  Next steps:
 - If you did not provide the base64 encoded license value for Octopus Deploy, you will need to paste the XML license file content using the UI.  The Octopus server will start without it, but will not allow you to add any targets or projects until a license has been applied
 - Add the Kubernetes Agent - Agent installation uses a Helm chart, which will need to be run before you disconnect from the Internet.  If you're new to Octopus, there is a wizard that will guide you throught this.
