@@ -157,6 +157,13 @@ find instruqt-sample-applications -iname "dockerfile*" | while read -r file; do
   echo "$NUGET_CONFIG" > "$dir/nuget.config"
 done
 
+cd instruqt-sample-applications
+git add .
+git config user.name "Setup User"
+git config user.email "me@fake.org"
+git commit -m "Configure for offline installation"
+git push http://admin:Admin123!@localhost:3000/admin/instruqt-sample-applications.git main
+
 echo ""
 echo "Your environment has been configured to work without Internet access.  Next steps:
 - If you did not provide the base64 encoded license value for Octopus Deploy, you will need to paste the XML license file content using the UI.  The Octopus server will start without it, but will not allow you to add any targets or projects until a license has been applied
