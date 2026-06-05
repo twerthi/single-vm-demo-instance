@@ -100,7 +100,7 @@ docker push localhost:5000/mcr.microsoft.com/dotnet/aspnet:9.0
 
 echo ""
 echo "Starting a local nuget server container..."
-docker run -d --name nuget-server -p 6000:8080 -e ApiKey="Admin123!" -v ./bagetter-data:/data  --network octopusdeploy_default bagetter/bagetter:latest
+docker run -d --name nuget-server -p 0.0.0.0:6000:8080 -e ApiKey="Admin123!" -v ./bagetter-data:/data  --network octopusdeploy_default bagetter/bagetter:latest
 
 echo ""
 echo "Cloning sample application repository for offline installation..."
