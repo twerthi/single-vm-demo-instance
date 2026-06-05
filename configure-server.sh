@@ -8,7 +8,7 @@ echo ""
 echo "Installing kubectl..."
 bash $PWD/tools/install-kubectl.sh
 
-export DOCKER_DEFAULT_PLATFORM=linux/amd64
+#export DOCKER_DEFAULT_PLATFORM=linux/amd64
 
 echo "Starting Octopus Deploy Server containers"
 sudo docker compose --env-file $PWD/octopusdeploy/octopusdeploy.env --file $PWD/octopusdeploy/octopusdeploy.yaml up -d

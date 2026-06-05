@@ -2,6 +2,7 @@ version: '3'
 services:
    db:
     image: ${SQL_IMAGE}
+    platform: linux/amd64
     environment:
       SA_PASSWORD: ${SA_PASSWORD}
       ACCEPT_EULA: ${ACCEPT_EULA}
@@ -16,6 +17,7 @@ services:
    octopus-server:
     container_name: octopus
     image: octopusdeploy/octopusdeploy:${OCTOPUS_SERVER_TAG}
+    platform: linux/amd64
     privileged: ${PRIVILEGED}
     user: ${CONTAINER_USER}
     environment:
