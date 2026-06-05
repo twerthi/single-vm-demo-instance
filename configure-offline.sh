@@ -137,6 +137,27 @@ for pkg in "$OUTPUT_DIR"/*.nupkg; do
 done
 
 echo ""
+echo "Updating git repo for offline builds..."
+
+NUGET_CONFIG='<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <!-- Removes all inherited or default machine sources (including nuget.org) -->
+    <clear />
+    <!-- Add only the explicit sources you actually want to keep -->
+    <add key="LocalFeed" value="http://nuget-server:8080" />
+  </packageSources>
+</configuration>'
+
+find instruqt-sample-applications -iname "dockerfile*" | while read -r file; do
+  dir=$(dirname "$file")
+  echo "Updating $file..."
+  sed -i 's|^FROM |FROM registry:5000/|g' "$file"
+  echo "Creating $dir/nuget.config..."
+  echo "$NUGET_CONFIG" > "$dir/nuget.config"
+done
+
+echo ""
 echo "Your environment has been configured to work without Internet access.  Next steps:
 - If you did not provide the base64 encoded license value for Octopus Deploy, you will need to paste the XML license file content using the UI.  The Octopus server will start without it, but will not allow you to add any targets or projects until a license has been applied
 - Add the Kubernetes Agent - Agent installation uses a Helm chart, which will need to be run before you disconnect from the Internet.  If you're new to Octopus, there is a wizard that will guide you throught this.
