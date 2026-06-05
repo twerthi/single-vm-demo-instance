@@ -6,6 +6,7 @@ networks:
 services:
   server:
     image: docker.gitea.com/gitea
+    platform: linux/amd64
     container_name: gitea
     environment:
       - USER_UID=1000
