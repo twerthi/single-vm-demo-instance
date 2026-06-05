@@ -7,6 +7,10 @@ bash $PWD/tools/install-helm.sh
 echo ""
 echo "Installing kubectl..."
 bash $PWD/tools/install-kubectl.sh
+echo "Installing jq..."
+bash $PWD/tools/install-jq.sh
+echo "Installing terraform..."
+bash $PWD/tools/install-terraform.sh
 
 echo "Starting Octopus Deploy Server containers"
 sudo docker compose --env-file $PWD/octopusdeploy/octopusdeploy.env --file $PWD/octopusdeploy/octopusdeploy.yaml up -d
