@@ -146,7 +146,7 @@ NUGET_CONFIG='<?xml version="1.0" encoding="utf-8"?>
     <!-- Removes all inherited or default machine sources (including nuget.org) -->
     <clear />
     <!-- Add only the explicit sources you actually want to keep -->
-    <add key="LocalFeed" value="http://nuget-server:8080" allowInsecureConnection="true" />
+    <add key="LocalFeed" value="http://nuget-server:8080" allowInsecureConnections="true" />
   </packageSources>
 </configuration>'
 
