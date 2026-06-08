@@ -1,5 +1,8 @@
+#! /bin/bash
+OS=$(uname -s)
+
 echo "Configuring local registry for offline installation..."
-docker run -d -p 5000:5000 --restart=always --name registry --network octopusdeploy_default registry:3
+docker run --platform linux/amd64 -d -p 5000:5000 --restart=always --name registry --network octopusdeploy_default registry:3
 
 echo ""
 echo "Pulling Argo CD images for offline installation..."
@@ -8,7 +11,7 @@ curl -s https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/inst
   | grep "image:" | sort -u | awk '{print $2}' \
   | while read image; do
       echo "==> Pulling: $image"
-      docker pull "$image"
+      docker pull --platform linux/amd64 "$image"
 
 
       echo "==> Pushing: $image to local registry"
@@ -46,8 +49,8 @@ done
 
 echo ""
 echo "Pre-pulling ubuntu image for Gitea builds"
-docker pull docker.gitea.com/runner-images:ubuntu-latest
-docker pull moby/buildkit:buildx-stable-1
+docker pull --platform linux/amd64 docker.gitea.com/runner-images:ubuntu-latest
+docker pull --platform linux/amd64 moby/buildkit:buildx-stable-1
 
 echo ""
 echo "Tagging and pushing ubuntu image to local registry for Gitea builds"
@@ -68,12 +71,20 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
   exit 1
 fi
 
-# Back up the original
-cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
-echo "Backup saved to ${CONFIG_FILE}.bak"
+if [ "$OS" = "Darwin" ]; then
+  sed -i .bak "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${REGISTRY_IMAGE}\"|g" "$CONFIG_FILE"
+elif [ "$OS" = "Linux" ]; then
 
-# Replace the label line
-sed -i "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${REGISTRY_IMAGE}\"|g" "$CONFIG_FILE"
+  # Back up the original
+  cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
+  echo "Backup saved to ${CONFIG_FILE}.bak"
+
+  # Replace the label line
+  sed -i "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${REGISTRY_IMAGE}\"|g" "$CONFIG_FILE"
+else
+    echo "Unsupported OS: $OS"
+    exit 1
+fi
 
 # Verify the change
 echo "Updated label:"
@@ -106,4 +117,4 @@ grep "$LABEL" "$CONFIG_FILE"
  
 
 # echo "Restarting Gitea runner to apply changes..."
-# docker restart gitea-runner
+# docker restart --platform linux/amd64 gitea-runner
