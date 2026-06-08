@@ -90,31 +90,93 @@ fi
 echo "Updated label:"
 grep "$LABEL" "$CONFIG_FILE"
 
-# set -euo pipefail
- 
-# DAEMON_JSON="/etc/docker/daemon.json"
-# REGISTRY="${1:?Usage: sudo $0 <registry>}"
- 
-# [[ $EUID -eq 0 ]]          || { echo "ERROR: Run as root."; exit 1; }
-# command -v jq &>/dev/null  || { echo "ERROR: jq is required."; exit 1; }
- 
-# # Create file if missing, validate if it exists
-# [[ -f "$DAEMON_JSON" ]] || echo "{}" > "$DAEMON_JSON"
-# jq empty "$DAEMON_JSON" 2>/dev/null || { echo "ERROR: Invalid JSON in $DAEMON_JSON"; exit 1; }
- 
-# # Check if already present
-# if jq -e --arg r "$REGISTRY" '.["insecure-registries"] // [] | contains([$r])' "$DAEMON_JSON" &>/dev/null; then
-#   echo "'$REGISTRY' already in insecure-registries. No changes made."
-#   exit 0
-# fi
- 
-# # Back up and update
-# cp "$DAEMON_JSON" "${DAEMON_JSON}.bak"
-# jq --arg r "$REGISTRY" '.["insecure-registries"] = ((.["insecure-registries"] // []) + [$r])' \
-#   "$DAEMON_JSON" > /tmp/daemon.json.tmp && mv /tmp/daemon.json.tmp "$DAEMON_JSON"
- 
-# echo "Added '$REGISTRY' to insecure-registries. Restart Docker to apply: sudo systemctl restart docker"
- 
+echo ""
+echo "Pulling Octopus Deploy Worker Tools image for offline installation..."
+docker pull --platform linux/amd64 octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
+echo "Tagging and pushing Octopus Deploy Worker Tools image to local registry for offline installation..."
+docker tag octopusdeploy/worker-tools:6.5.0-ubuntu.22.04 localhost:5000/octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
+docker push localhost:5000/octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
 
-# echo "Restarting Gitea runner to apply changes..."
-# docker restart --platform linux/amd64 gitea-runner
+echo ""
+echo "Pulling dependent images for sample application build..."
+docker pull --platform linux/amd64 mcr.microsoft.com/dotnet/sdk:9.0
+echo "Tagging and pushing dependent images to local registry for offline installation..."
+docker tag mcr.microsoft.com/dotnet/sdk:9.0 localhost:5000/mcr.microsoft.com/dotnet/sdk:9.0
+docker push localhost:5000/mcr.microsoft.com/dotnet/sdk:9.0 
+
+docker pull --platform linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0
+echo "Tagging and pushing dependent images to local registry for offline installation..."
+docker tag mcr.microsoft.com/dotnet/aspnet:9.0 localhost:5000/mcr.microsoft.com/dotnet/aspnet:9.0
+docker push localhost:5000/mcr.microsoft.com/dotnet/aspnet:9.0
+
+echo ""
+echo "Starting a local nuget server container..."
+docker run --platform linux/amd64  -d --name nuget-server -p 8000:8080 -e ApiKey="Admin123!" -v ./bagetter-data:/data  --network octopusdeploy_default bagetter/bagetter:latest
+
+echo ""
+echo "Cloning sample application repository for offline installation..."
+git clone http://localhost:3000/admin/instruqt-sample-applications.git
+
+echo ""
+echo "Parsing nuget package dependencies..."
+find instruqt-sample-applications -name "*.csproj" -exec sh -c 'grep "<PackageReference" "$1" | sed -E "s/.*Include=\"([^\"]*)\".*Version=\"([^\"]*)\".*/\1|\2/p"' sh {} \; | sort -u > nuget-dependencies.txt
+
+echo ""
+echo "Downloading nuget packages for offline installation..."
+ 
+OUTPUT_DIR="./nuget-packages"
+mkdir -p "$OUTPUT_DIR"
+ 
+while IFS='|' read -r pkg_id version; do
+  pkg_lower=$(echo "$pkg_id" | tr '[:upper:]' '[:lower:]')
+  ver_lower=$(echo "$version" | tr '[:upper:]' '[:lower:]')
+  echo "Downloading $pkg_id $version..."
+  curl -sL -o "$OUTPUT_DIR/${pkg_lower}.${ver_lower}.nupkg" \
+    "https://api.nuget.org/v3-flatcontainer/${pkg_lower}/${ver_lower}/${pkg_lower}.${ver_lower}.nupkg"
+done < nuget-dependencies.txt
+ 
+echo "Done."
+
+echo "" 
+echo "Uploading nuget packages to local nuget server for offline installation..."
+for pkg in "$OUTPUT_DIR"/*.nupkg; do
+  echo "Uploading $(basename "$pkg")..."
+  curl -X PUT "http://localhost:8000/api/v2/package" \
+    -H "X-NuGet-ApiKey: Admin123!" \
+    -H "Content-Type: application/octet-stream" \
+    --upload-file "$pkg"
+done
+
+echo ""
+echo "Updating git repo for offline builds..."
+
+NUGET_CONFIG='<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <!-- Removes all inherited or default machine sources (including nuget.org) -->
+    <clear />
+    <!-- Add only the explicit sources you actually want to keep -->
+    <add key="LocalFeed" value="http://nuget-server:8080" allowInsecureConnections="true" />
+  </packageSources>
+</configuration>'
+
+find instruqt-sample-applications -iname "dockerfile*" | while read -r file; do
+  dir=$(dirname "$file")
+  echo "Updating $file..."
+  sed -i 's|^FROM |FROM registry:5000/|g' "$file"
+  echo "Creating $dir/nuget.config..."
+  echo "$NUGET_CONFIG" > "$dir/nuget.config"
+done
+
+cd instruqt-sample-applications
+git add .
+git config user.name "Setup User"
+git config user.email "me@fake.org"
+git commit -m "Configure for offline installation"
+git push http://admin:Admin123!@localhost:3000/admin/instruqt-sample-applications.git main
+
+echo ""
+echo "Your environment has been configured to work without Internet access.  Next steps:
+- If you did not provide the base64 encoded license value for Octopus Deploy, you will need to paste the XML license file content using the UI.  The Octopus server will start without it, but will not allow you to add any targets or projects until a license has been applied
+- Add the Kubernetes Agent - Agent installation uses a Helm chart, which will need to be run before you disconnect from the Internet.  If you're new to Octopus, there is a wizard that will guide you throught this.
+- Add the Octopus Deploy Argo CD Gateway - Gateway installation uses a Helm chart, which will need to be run before you disconnect from the Internet.  If you're new to Octopus, there is a wizard that will guide you throught this."
