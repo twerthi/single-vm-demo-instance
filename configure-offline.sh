@@ -62,7 +62,7 @@ docker push localhost:5000/moby/buildkit:buildx-stable-1
 echo ""
 echo "Updating gitea runner configuration to use local registry..."
 CONFIG_FILE="${1:-$PWD/gitea/config.yaml}"
-#REGISTRY_IMAGE="${2:-registry:5000/runner-images:ubuntu-latest}"
+# Set to localhost because the containers run on the host context and the registry is exposed on the host's network. The runner will be configured to pull from localhost:5000 which is the local registry.
 REGISTRY_IMAGE="${2:-localhost:5000/runner-images:ubuntu-latest}"
 LABEL="ubuntu-latest"
 
