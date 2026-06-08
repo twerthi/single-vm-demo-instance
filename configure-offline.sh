@@ -1,5 +1,8 @@
+#! /bin/bash
+OS=$(uname -s)
+
 echo "Configuring local registry for offline installation..."
-docker run -d -p 5000:5000 --restart=always --name registry --network octopusdeploy_default registry:3
+docker run --platform linux/amd64 -d -p 5000:5000 --restart=always --name registry --network octopusdeploy_default registry:3
 
 echo ""
 echo "Pulling Argo CD images for offline installation..."
@@ -8,7 +11,7 @@ curl -s https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/inst
   | grep "image:" | sort -u | awk '{print $2}' \
   | while read image; do
       echo "==> Pulling: $image"
-      docker pull "$image"
+      docker pull --platform linux/amd64 "$image"
 
 
       echo "==> Pushing: $image to local registry"
@@ -46,8 +49,8 @@ done
 
 echo ""
 echo "Pre-pulling ubuntu image for Gitea builds"
-docker pull docker.gitea.com/runner-images:ubuntu-latest
-docker pull moby/buildkit:buildx-stable-1
+docker pull --platform linux/amd64 docker.gitea.com/runner-images:ubuntu-latest
+docker pull --platform linux/amd64 moby/buildkit:buildx-stable-1
 
 echo ""
 echo "Tagging and pushing ubuntu image to local registry for Gitea builds"
@@ -68,12 +71,20 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
   exit 1
 fi
 
-# Back up the original
-cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
-echo "Backup saved to ${CONFIG_FILE}.bak"
+if [ "$OS" = "Darwin" ]; then
+  sed -i .bak "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${REGISTRY_IMAGE}\"|g" "$CONFIG_FILE"
+elif [ "$OS" = "Linux" ]; then
 
-# Replace the label line
-sed -i "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${REGISTRY_IMAGE}\"|g" "$CONFIG_FILE"
+  # Back up the original
+  cp "$CONFIG_FILE" "${CONFIG_FILE}.bak"
+  echo "Backup saved to ${CONFIG_FILE}.bak"
+
+  # Replace the label line
+  sed -i "s|\"${LABEL}:docker://[^\"]*\"|\"${LABEL}:docker://${REGISTRY_IMAGE}\"|g" "$CONFIG_FILE"
+else
+    echo "Unsupported OS: $OS"
+    exit 1
+fi
 
 # Verify the change
 echo "Updated label:"
@@ -81,26 +92,26 @@ grep "$LABEL" "$CONFIG_FILE"
 
 echo ""
 echo "Pulling Octopus Deploy Worker Tools image for offline installation..."
-docker pull octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
+docker pull --platform linux/amd64 octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
 echo "Tagging and pushing Octopus Deploy Worker Tools image to local registry for offline installation..."
 docker tag octopusdeploy/worker-tools:6.5.0-ubuntu.22.04 localhost:5000/octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
 docker push localhost:5000/octopusdeploy/worker-tools:6.5.0-ubuntu.22.04
 
 echo ""
 echo "Pulling dependent images for sample application build..."
-docker pull mcr.microsoft.com/dotnet/sdk:9.0
+docker pull --platform linux/amd64 mcr.microsoft.com/dotnet/sdk:9.0
 echo "Tagging and pushing dependent images to local registry for offline installation..."
 docker tag mcr.microsoft.com/dotnet/sdk:9.0 localhost:5000/mcr.microsoft.com/dotnet/sdk:9.0
 docker push localhost:5000/mcr.microsoft.com/dotnet/sdk:9.0 
 
-docker pull mcr.microsoft.com/dotnet/aspnet:9.0
+docker pull --platform linux/amd64 mcr.microsoft.com/dotnet/aspnet:9.0
 echo "Tagging and pushing dependent images to local registry for offline installation..."
 docker tag mcr.microsoft.com/dotnet/aspnet:9.0 localhost:5000/mcr.microsoft.com/dotnet/aspnet:9.0
 docker push localhost:5000/mcr.microsoft.com/dotnet/aspnet:9.0
 
 echo ""
 echo "Starting a local nuget server container..."
-docker run -d --name nuget-server -p 8000:8080 -e ApiKey="Admin123!" -v ./bagetter-data:/data  --network octopusdeploy_default bagetter/bagetter:latest
+docker run --platform linux/amd64  -d --name nuget-server -p 8000:8080 -e ApiKey="Admin123!" -v ./bagetter-data:/data  --network octopusdeploy_default bagetter/bagetter:latest
 
 echo ""
 echo "Cloning sample application repository for offline installation..."
@@ -112,7 +123,6 @@ find instruqt-sample-applications -name "*.csproj" -exec sh -c 'grep "<PackageRe
 
 echo ""
 echo "Downloading nuget packages for offline installation..."
-#!/usr/bin/env bash
  
 OUTPUT_DIR="./nuget-packages"
 mkdir -p "$OUTPUT_DIR"
