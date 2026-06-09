@@ -1,2 +1,4 @@
 /gitea/gitea
 *.bak
+kubectl
+bagetter-data
