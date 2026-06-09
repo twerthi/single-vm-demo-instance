@@ -1,4 +1,7 @@
 /gitea/gitea
 *.bak
 kubectl
-bagetter-data
+bagetter-data/
+nuget-packages/
+nuget-dependencies.txt
+instruqt-sample-applications/
