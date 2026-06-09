@@ -3,5 +3,5 @@
 kubectl
 bagetter-data/
 nuget-packages/
-nuget-dependencies.txt
+./nuget-dependencies.txt
 instruqt-sample-applications/
