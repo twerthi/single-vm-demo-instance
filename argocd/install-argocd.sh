@@ -34,10 +34,18 @@ kubectl patch configmap argocd-rbac-cm \
 kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{"data":{"server.insecure":"true"}}'
 kubectl rollout restart deployment argocd-server -n argocd
 
-sleep 20
+echo ""
+echo "checking rollout status of argocd"
+
+kubectl rollout status deployment/argocd-server -n argocd --timeout=120s
+
+echo "Getting initial admin secret from argocd"
 
 argoPassword=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo)
+echo "Got admin password. Attempting login"
 argocd login localhost:9443 --username admin --password $argoPassword --insecure --plaintext
+
+echo "Creating password for octopus user in argocd"
 
 argocd account update-password \
   --account octopus \
@@ -45,3 +53,5 @@ argocd account update-password \
   --current-password $argoPassword \
   --insecure \
   --plaintext
+
+  echo "Finished configuring argocd!"
