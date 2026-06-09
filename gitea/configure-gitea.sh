@@ -1,13 +1,29 @@
+#!/bin/bash
+
 echo "Creating admin user account"
 docker exec -it gitea su git -c "gitea admin user create --username 'admin' --password 'Admin123!' --email gitea-admin@octopus.app --admin --must-change-password=false --config /data/gitea/conf/app.ini"
 
 GITEA_ADMIN_USER="admin"
-GITEA_ADMIN_PASSWORD="Admin123!"
+GITEA_ADMIN_PASSWORD='Admin123!'
 GITEA_URL="http://localhost:3000"
 
 sleep 20
 
 echo ""
+echo "--- Checking if Token already exists ---"
+TOKEN_RESPONSE=$(curl -s -X GET "${GITEA_URL}/api/v1/users/${GITEA_ADMIN_USER}/tokens" \
+  -u "${GITEA_ADMIN_USER}:${GITEA_ADMIN_PASSWORD}" \
+  -H "Content-Type: application/json" ) || true
+
+# The token list endpoint never returns the sha1 value, so if the
+# instruqt-setup token already exists we delete it and recreate it below
+# to obtain a usable token value.
+if echo "${TOKEN_RESPONSE}" | grep -q '"name":"instruqt-setup"'; then
+  echo "instruqt-setup token already exists - deleting so it can be recreated"
+  curl -s -X DELETE "${GITEA_URL}/api/v1/users/${GITEA_ADMIN_USER}/tokens/instruqt-setup" \
+    -u "${GITEA_ADMIN_USER}:${GITEA_ADMIN_PASSWORD}" || true
+fi
+
 echo "--- Creating API Token ---"
 TOKEN_RESPONSE=$(curl -s -X POST "${GITEA_URL}/api/v1/users/${GITEA_ADMIN_USER}/tokens" \
   -u "${GITEA_ADMIN_USER}:${GITEA_ADMIN_PASSWORD}" \
