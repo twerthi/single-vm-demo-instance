@@ -160,10 +160,17 @@ NUGET_CONFIG='<?xml version="1.0" encoding="utf-8"?>
   </packageSources>
 </configuration>'
 
-find instruqt-sample-applications -iname "dockerfile*" | while read -r file; do
+find instruqt-sample-applications -iname "Dockerfile*" | while read -r file; do
   dir=$(dirname "$file")
   echo "Updating $file..."
-  sed -i 's|^FROM |FROM registry:5000/|g' "$file"
+  if [ "$OS" = "Darwin" ]; then
+    sed -i .bak 's|^FROM |FROM registry:5000/|g' "$file"
+  elif [ "$OS" = "Linux" ]; then
+    sed -i 's|^FROM |FROM registry:5000/|g' "$file"
+  else
+    echo "Unsupported OS: $OS"
+    exit 1
+  fi
   echo "Creating $dir/nuget.config..."
   echo "$NUGET_CONFIG" > "$dir/nuget.config"
 done
