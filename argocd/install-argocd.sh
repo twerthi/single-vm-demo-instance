@@ -16,7 +16,7 @@ kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
 echo "Patching to nodeport"
 bash $PWD/argocd/patch-nodeport.sh
 
-#argocd account update-password --current-password $argoPassword --new-password 'Admin123!' --insecure
+#argocd account update-password --current-password $argoPassword --new-password 'Admin123!' --insecure --plaintext
 
 echo ">>> Configuring Argo CD octopus account..."
 kubectl patch configmap argocd-cm \
@@ -37,10 +37,11 @@ kubectl rollout restart deployment argocd-server -n argocd
 sleep 20
 
 argoPassword=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo)
-argocd login localhost:9443 --username admin --password $argoPassword --insecure
+argocd login localhost:9443 --username admin --password $argoPassword --insecure --plaintext
 
 argocd account update-password \
   --account octopus \
   --new-password 'Admin123!' \
   --current-password $argoPassword \
-  --insecure
+  --insecure \
+  --plaintext
