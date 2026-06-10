@@ -32,6 +32,7 @@ services:
       ADMIN_API_KEY: ${ADMIN_API_KEY}
       DISABLE_DIND: ${DISABLE_DIND}
       TASK_CAP: ${TASK_CAP}
+      OCTOPUS__FeatureToggles__ProjectTemplatesFeatureToggle: "true"
     ports:
       - 8080:8080
       - 10943:10943
