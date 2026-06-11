@@ -46,6 +46,7 @@ services:
       - cache:/cache
       - import:/import
       - eventExports:/eventExports
+      - /var/run/docker.sock:/var/run/docker.sock
 volumes:
   repository:
   artifacts:
